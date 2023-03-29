@@ -49,6 +49,7 @@ describe("Order Repository tests", () => {
         const changedOrder = await buildAlternativeOrder(order.id, orderItem.id);
         await orderRepository.update(changedOrder.order);
 
+        await assertOrderInDatabase(changedOrder.order, changedOrder.orderItem);
     });
 
     it('should find an existing order', async () => {
