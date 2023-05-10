@@ -1,7 +1,8 @@
 import AddressChangedEvent from "./customer/address-changed-event";
 import CustomerCreatedEvent from "./customer/customer-created-event";
+import EnviaConsoleLogHandler from "./customer/handler/send-console-log-when-address-is-changed.handler";
 import EnviaConsoleLog1Handler from "./customer/handler/send-console-log1-when-customer-is-created.handler";
-import EnviaConsoleLog2Handler from "./customer/handler/send-console-log2-when-address-is-changed.handler";
+import EnviaConsoleLog2Handler from "./customer/handler/send-console-log2-when-customer-is-created.handler";
 import EventDispatcher from "./event-dispatcher";
 import SendEmailWhenProductIsCreatedHandler from "./product/handler/send-email-when-product-is-created.handler";
 import ProductCreatedEvent from "./product/product-created-event";
@@ -61,13 +62,18 @@ describe("Domain events tests", () => {
        expect(spyEventHandler).toHaveBeenCalled();
     });
    
-    it("should send console log 1 when customer is created", () => {
+    it("should send console log 1 and 2 when customer is created", () => {
        const eventDispatcher = new EventDispatcher();
-       const eventHandler = new EnviaConsoleLog1Handler();
-       const spyEventHandler = jest.spyOn(eventHandler, "handle");
+       const eventHandlerLog1 = new EnviaConsoleLog1Handler();
+       const spyEventHandlerLog1 = jest.spyOn(eventHandlerLog1, "handle");
+       const eventHandlerLog2 = new EnviaConsoleLog2Handler();
+       const spyEventHandlerLog2 = jest.spyOn(eventHandlerLog2, "handle");
 
-       eventDispatcher.register("CustomerCreatedEvent", eventHandler);
-       expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"][0]).toMatchObject(eventHandler);
+       eventDispatcher.register("CustomerCreatedEvent", eventHandlerLog1);
+       expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"][0]).toMatchObject(eventHandlerLog1);
+
+       eventDispatcher.register("CustomerCreatedEvent", eventHandlerLog2);
+       expect(eventDispatcher.getEventHandlers["CustomerCreatedEvent"][1]).toMatchObject(eventHandlerLog2);
 
        const event = new CustomerCreatedEvent({
         name: "Customer"
@@ -75,23 +81,26 @@ describe("Domain events tests", () => {
 
        eventDispatcher.notify(event);
 
-       expect(spyEventHandler).toHaveBeenCalled();
+       expect(spyEventHandlerLog1).toHaveBeenCalled();
+       expect(spyEventHandlerLog2).toHaveBeenCalled();
     });
    
-    it("should send console log 21 when customer address is changed", () => {
+    it("should send console log when customer address is changed", () => {
        const eventDispatcher = new EventDispatcher();
-       const eventHandler = new EnviaConsoleLog2Handler();
-       const spyEventHandler = jest.spyOn(eventHandler, "handle");
+       const eventHandlerLog = new EnviaConsoleLogHandler();
+       const spyEventHandlerLog = jest.spyOn(eventHandlerLog, "handle");
 
-       eventDispatcher.register("AddressChangedEvent", eventHandler);
-       expect(eventDispatcher.getEventHandlers["AddressChangedEvent"][0]).toMatchObject(eventHandler);
+       eventDispatcher.register("AddressChangedEvent", eventHandlerLog);
+       expect(eventDispatcher.getEventHandlers["AddressChangedEvent"][0]).toMatchObject(eventHandlerLog);
 
        const event = new AddressChangedEvent({
-        address: "Address changed"
+        id: 1238,
+        nome: "João",
+        endereco: "new address"
        });
 
        eventDispatcher.notify(event);
 
-       expect(spyEventHandler).toHaveBeenCalled();
+       expect(spyEventHandlerLog).toHaveBeenCalled();
     });
 });
